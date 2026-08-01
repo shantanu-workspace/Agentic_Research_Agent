@@ -61,50 +61,34 @@ search. That plan → tool selection → execution loop — with the routing dec
 made by the LLM per-query rather than hardcoded — is what makes this an agent
 rather than a wrapper around a single search API.
 
-## Architecture
-User Query
-                        │
-                        ▼
-            ┌──────────────────────────┐
-            │      Planner (LLM)       │
-            │------------------------- │
-            │ • Detect domain          │
-            │ • Expand into phrasings  │
-            │ • Choose providers       │
-            │ • Explain the choice     │
-            └────────────┬─────────────┘
-                         │
-            ┌────────────┴─────────────┐
-            │                          │
-        OpenAlex                 arXiv (optional —
-    (always available)         only when domain fits)
-            │                          │
-            └────────────┬─────────────┘
-                         ▼
-               Merge + Deduplicate
-                   (by paperId)
-                         │
-                         ▼
-              Candidate Filtering
-    (relevance keyword-overlap + citations + recency;
-          caps the pool before the LLM pass)
-                         │
-                         ▼
-               LLM Paper Analysis
-    (bounded-concurrency Groq calls, one per candidate:
-       contribution, method, relevanceScore, rationale)
-                         │
-                         ▼
-             Weighted Paper Ranking
-  finalScore = 0.65·relevance + 0.25·log(citations) + 0.10·recency
-                         │
-                         ▼
-              Confidence Filtering
-    (discard anything below the relevance threshold —
-         quality over quantity in the final list)
-                         │
-                         ▼
-          PostgreSQL persistence + SSE stream to UI
+### Architecture Diagram
+```mermaid
+flowchart TD
+
+A["User Query"] --> B["Planner - LLM"]
+
+B --> C["Detect Domain"]
+B --> D["Expand Search Phrasings"]
+B --> E["Choose Providers"]
+B --> F["Explain Decision"]
+
+E --> G["OpenAlex"]
+E --> H["arXiv (Optional)"]
+
+G --> I["Merge & Deduplicate"]
+H --> I
+
+I --> J["Candidate Filtering"]
+
+J --> K["LLM Paper Analysis"]
+
+K --> L["Weighted Ranking"]
+
+L --> M["Confidence Filtering"]
+
+M --> N["PostgreSQL Persistence"]
+M --> O["SSE Stream to UI"]
+```
 
 ## Screenshots
 
