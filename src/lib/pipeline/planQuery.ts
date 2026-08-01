@@ -4,6 +4,7 @@ import { groqJson } from "../groq";
 const planSchema = z.object({
   coreConcepts: z.array(z.string()).min(1).max(6),
   searchPhrasings: z.array(z.string()).min(2).max(4),
+  domain: z.string().min(2).max(60),
   providers: z.array(z.enum(["openalex", "arxiv"])).min(1).max(2),
   providerReason: z.string().min(10),
 });
@@ -40,11 +41,13 @@ Never select arXiv unless the topic clearly belongs to its supported research ar
 
 Respond ONLY as JSON:
 
+Respond ONLY with JSON matching this exact shape:
 {
-  "coreConcepts": string[],
-  "searchPhrasings": string[],
-  "providers": ["openalex"] | ["openalex","arxiv"],
-  "providerReason": string
+  "coreConcepts": string[],       // 2-6 short noun-phrase concepts, e.g. "retrieval-augmented generation"
+  "searchPhrasings": string[],    // 2-4 distinct search strings, each 3-8 words, varying terminology/synonyms
+  "domain": string,               // short label, e.g. "Computer Science / Machine Learning" or "Medicine"
+  "providers": string[],          // 1-2 of: "openalex", "arxiv"
+  "providerReason": string        // 1 sentence, plain language, explaining the provider choice to an end user
 }`;
 
 /**

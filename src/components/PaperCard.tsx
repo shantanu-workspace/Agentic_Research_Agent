@@ -17,7 +17,24 @@ export interface PaperCardData {
     venue: string | null;
     citationCount: number;
     url: string | null;
+    source: string; // "openalex" | "arxiv"
   };
+}
+
+const SOURCE_NAMES: Record<string, string> = { openalex: "OpenAlex", arxiv: "arXiv" };
+
+/**
+ * `paper.source` records which provider API we queried (openalex vs. our own
+ * arxiv client) — but OpenAlex's own index crawls and includes arXiv
+ * preprints, so a paper fetched *via* OpenAlex can still have a venue like
+ * "arXiv (Cornell University)". Showing "Source: OpenAlex" next to that venue
+ * reads as a routing bug even though the routing was correct. What a reader
+ * actually means by "source" is the paper's true origin, so prefer the venue
+ * signal when it clearly says arXiv.
+ */
+function displaySource(paper: PaperCardData["paper"]): string {
+  if (paper.venue && /arxiv/i.test(paper.venue)) return "arXiv";
+  return SOURCE_NAMES[paper.source] ?? paper.source;
 }
 
 function relevanceVariant(score: number): "success" | "warning" | "outline" {
@@ -40,6 +57,7 @@ export function PaperCard({ data }: { data: PaperCardData }) {
     .map((a) => a.name)
     .join(", ");
   const extraAuthors = paper.authors.length > 3 ? ` +${paper.authors.length - 3} more` : "";
+  const sourceName = displaySource(paper);
 
   return (
     <Card>
@@ -56,9 +74,12 @@ export function PaperCard({ data }: { data: PaperCardData }) {
               </>
             )}
           </div>
-          <Badge variant={relevanceVariant(data.relevanceScore)}>
-            {relevanceLabel(data.relevanceScore)}
-          </Badge>
+          <div className="flex shrink-0 items-center gap-2">
+            <Badge variant="outline">Source: {sourceName}</Badge>
+            <Badge variant={relevanceVariant(data.relevanceScore)}>
+              {relevanceLabel(data.relevanceScore)}
+            </Badge>
+          </div>
         </div>
         <CardTitle>
           {paper.url ? (

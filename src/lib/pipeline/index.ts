@@ -30,6 +30,7 @@ export interface PipelineStats {
 }
 
 export interface SearchStrategy {
+  domain: string;
   providers: ("openalex" | "arxiv")[];
   reason: string;
 }
@@ -72,6 +73,7 @@ export async function runPipeline(
     );
     const rawResults = await searchPapers(plan);
     const searchStrategy: SearchStrategy = {
+      domain: plan.domain,
       providers: plan.providers,
       reason: plan.providerReason,
     };

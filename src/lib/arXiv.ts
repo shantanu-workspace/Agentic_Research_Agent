@@ -58,6 +58,7 @@ function parseEntry(entryXml: string): RawPaper | null {
     url: `https://arxiv.org/abs/${arxivId}`,
     tldr: null,
     externalIds: { arXiv: arxivId },
+    source: "arxiv",
   };
 }
 

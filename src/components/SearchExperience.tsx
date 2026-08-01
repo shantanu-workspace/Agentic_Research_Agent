@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AgentSteps } from "@/components/AgentSteps";
 import { PaperCard, type PaperCardData } from "@/components/PaperCard";
+import { PlannerDecision, type PlannerDecisionData } from "@/components/PlannerDecision";
 import { Loader2, Search } from "lucide-react";
 import type { PipelineStage } from "@/lib/pipeline";
 
@@ -23,6 +24,7 @@ interface RankedPaperResponse {
     venue: string | null;
     citationCount: number;
     url: string | null;
+    source: string;
   };
   analysis: { relevanceScore: number; rationale: string; contribution: string; method: string };
   finalScore: number;
@@ -35,18 +37,6 @@ interface PipelineStats {
   papersPassed: number;
 }
 
-interface SearchStrategy {
-  providers: string[];
-  reason: string;
-}
-
-const PROVIDER_NAMES: Record<string, string> = { openalex: "OpenAlex", arxiv: "arXiv" };
-
-function formatProviders(providers: string[]): string {
-  const names = providers.map((p) => PROVIDER_NAMES[p] ?? p);
-  return names.join(" and ");
-}
-
 export function SearchExperience() {
   const [query, setQuery] = useState("");
   const [isRunning, setIsRunning] = useState(false);
@@ -54,7 +44,7 @@ export function SearchExperience() {
   const [detail, setDetail] = useState<string | undefined>();
   const [results, setResults] = useState<PaperCardData[] | null>(null);
   const [stats, setStats] = useState<PipelineStats | null>(null);
-  const [strategy, setStrategy] = useState<SearchStrategy | null>(null);
+  const [strategy, setStrategy] = useState<PlannerDecisionData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -108,7 +98,15 @@ export function SearchExperience() {
           } else if (parsed.type === "result") {
             const ranked: RankedPaperResponse[] = parsed.rankedPapers;
             setStats(parsed.stats ?? null);
-            setStrategy(parsed.searchStrategy ?? null);
+            setStrategy(
+              parsed.searchStrategy
+                ? {
+                    domain: parsed.searchStrategy.domain,
+                    providers: parsed.searchStrategy.providers,
+                    reason: parsed.searchStrategy.reason,
+                  }
+                : null
+            );
             setResults(
               ranked.map((r) => ({
                 rank: r.rank,
@@ -124,6 +122,7 @@ export function SearchExperience() {
                   venue: r.paper.venue,
                   citationCount: r.paper.citationCount,
                   url: r.paper.url,
+                  source: r.paper.source,
                 },
               }))
             );
@@ -195,12 +194,7 @@ export function SearchExperience() {
         </div>
       )}
 
-      {!isRunning && strategy && (
-        <p className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Search strategy:</span> Selected{" "}
-          {formatProviders(strategy.providers)} — {strategy.reason}
-        </p>
-      )}
+      {!isRunning && strategy && <PlannerDecision data={strategy} />}
 
       {results && results.length === 0 && (
         <div className="rounded-lg border border-border bg-muted/40 p-6 text-center text-sm text-muted-foreground">

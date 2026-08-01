@@ -18,6 +18,7 @@ export interface RawPaper {
   url: string | null;
   tldr: { text: string } | null; // OpenAlex has no TLDR field; always null here
   externalIds: Record<string, string> | null;
+  source: "openalex" | "arxiv";
 }
 
 interface OpenAlexAuthorship {
@@ -75,6 +76,7 @@ function toRawPaper(work: OpenAlexWork): RawPaper {
     url: work.doi ?? `https://openalex.org/${shortId}`,
     tldr: null,
     externalIds: work.doi ? { DOI: work.doi.replace("https://doi.org/", "") } : null,
+    source: "openalex"
   };
 }
 
