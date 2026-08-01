@@ -29,10 +29,16 @@ export interface PipelineStats {
   papersPassed: number;
 }
 
+export interface SearchStrategy {
+  providers: ("openalex" | "arxiv")[];
+  reason: string;
+}
+
 export interface PipelineResult {
   queryId: string;
   rankedPapers: RankedPaper[];
   stats: PipelineStats;
+  searchStrategy: SearchStrategy;
 }
 
 /**
@@ -60,8 +66,15 @@ export async function runPipeline(
       data: { expandedKeywords: plan.searchPhrasings },
     });
 
-    notify("searching", `${plan.searchPhrasings.length} phrasings`);
-    const rawResults = await searchPapers(plan.searchPhrasings);
+    notify(
+      "searching",
+      `${plan.providers.join(" + ")} · ${plan.searchPhrasings.length} phrasings`
+    );
+    const rawResults = await searchPapers(plan);
+    const searchStrategy: SearchStrategy = {
+      providers: plan.providers,
+      reason: plan.providerReason,
+    };
 
     if (rawResults.length === 0) {
       await prisma.query.update({
@@ -72,6 +85,7 @@ export async function runPipeline(
         queryId: queryRow.id,
         rankedPapers: [],
         stats: { papersSearched: 0, papersAnalyzed: 0, papersPassed: 0 },
+        searchStrategy,
       };
     }
 
@@ -149,7 +163,7 @@ export async function runPipeline(
     ]);
 
     notify("done");
-    return { queryId: queryRow.id, rankedPapers: confident, stats };
+    return { queryId: queryRow.id, rankedPapers: confident, stats, searchStrategy };
   } catch (err) {
     await prisma.query.update({
       where: { id: queryRow.id },

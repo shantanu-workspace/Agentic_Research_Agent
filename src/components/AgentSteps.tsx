@@ -6,7 +6,7 @@ import type { PipelineStage } from "@/lib/pipeline";
 
 const STAGES: { key: PipelineStage; label: string }[] = [
   { key: "planning", label: "Planning search strategy" },
-  { key: "searching", label: "Searching OpenAlex" },
+  { key: "searching", label: "Searching literature databases" },
   { key: "filtering", label: "Filtering candidates" },
   { key: "analyzing", label: "Reading & scoring papers" },
   { key: "ranking", label: "Ranking results" },

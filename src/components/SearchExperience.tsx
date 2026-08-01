@@ -35,6 +35,18 @@ interface PipelineStats {
   papersPassed: number;
 }
 
+interface SearchStrategy {
+  providers: string[];
+  reason: string;
+}
+
+const PROVIDER_NAMES: Record<string, string> = { openalex: "OpenAlex", arxiv: "arXiv" };
+
+function formatProviders(providers: string[]): string {
+  const names = providers.map((p) => PROVIDER_NAMES[p] ?? p);
+  return names.join(" and ");
+}
+
 export function SearchExperience() {
   const [query, setQuery] = useState("");
   const [isRunning, setIsRunning] = useState(false);
@@ -42,6 +54,7 @@ export function SearchExperience() {
   const [detail, setDetail] = useState<string | undefined>();
   const [results, setResults] = useState<PaperCardData[] | null>(null);
   const [stats, setStats] = useState<PipelineStats | null>(null);
+  const [strategy, setStrategy] = useState<SearchStrategy | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -51,6 +64,7 @@ export function SearchExperience() {
     setIsRunning(true);
     setResults(null);
     setStats(null);
+    setStrategy(null);
     setError(null);
     setStage(null);
 
@@ -94,6 +108,7 @@ export function SearchExperience() {
           } else if (parsed.type === "result") {
             const ranked: RankedPaperResponse[] = parsed.rankedPapers;
             setStats(parsed.stats ?? null);
+            setStrategy(parsed.searchStrategy ?? null);
             setResults(
               ranked.map((r) => ({
                 rank: r.rank,
@@ -180,13 +195,20 @@ export function SearchExperience() {
         </div>
       )}
 
+      {!isRunning && strategy && (
+        <p className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Search strategy:</span> Selected{" "}
+          {formatProviders(strategy.providers)} — {strategy.reason}
+        </p>
+      )}
+
       {results && results.length === 0 && (
         <div className="rounded-lg border border-border bg-muted/40 p-6 text-center text-sm text-muted-foreground">
           {stats ? (
             <>
-              I searched {stats.papersSearched} papers and read {stats.papersAnalyzed} of them in
-              depth — none cleared the relevance bar for this question. Try rephrasing with more
-              specific terminology.
+              I searched {stats.papersSearched} papers and shortlisted the top{" "}
+              {stats.papersAnalyzed} for detailed analysis — none strongly matched this question.
+              Try rephrasing with more specific terminology.
             </>
           ) : (
             "No relevant papers found. Try rephrasing your question with more specific terminology."
@@ -199,10 +221,10 @@ export function SearchExperience() {
           <p className="text-sm text-muted-foreground">
             {stats ? (
               <>
-                I searched {stats.papersSearched} papers and evaluated {stats.papersAnalyzed} in
-                depth — only <span className="font-medium text-foreground">{results.length}</span>{" "}
-                satisfied your query. Here {results.length === 1 ? "it is" : "they are"}, ranked by
-                relevance, citation impact, and recency.
+                I searched {stats.papersSearched} papers, shortlisted the top{" "}
+                {stats.papersAnalyzed} for detailed analysis, and found{" "}
+                <span className="font-medium text-foreground">{results.length}</span> that
+                strongly matched your query.
               </>
             ) : (
               <>Found {results.length} relevant papers, ranked by relevance, citation impact, and recency.</>
