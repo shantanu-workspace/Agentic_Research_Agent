@@ -1,9 +1,7 @@
 # Research Assistant AI Agent
 
 <!--
-TODO (fill in once deployed):
-
-Live Demo: https://your-deployment-url.vercel.app
+Live Demo: https://agentic-research-agent-pi.vercel.app/
 Architecture: see below
 Screenshots: see below
 -->
@@ -110,10 +108,6 @@ M --> O["SSE Stream to UI"]
   <img src="image3.png" width="900">
 </p>
 
-## Demo
-
-_(TODO — add a short GIF: type query → planner appears → searching → analyzing →
-results appear)_
 
 ## Why these design choices (worth saying out loud in an interview)
 
@@ -177,7 +171,7 @@ results appear)_
 | **Backend**       | Next.js API Routes                         | Agent pipeline orchestration and SSE streaming                                |
 | **Database**      | PostgreSQL (Neon)                          | Persist queries, papers, rankings, and search history                         |
 | **ORM**           | Prisma                                     | Type-safe database access and schema management                               |
-| **LLM**           | Groq (`llama-3.3-70b-versatile`)           | Query planning, paper analysis, relevance scoring, structured JSON generation |
+| **LLM**           | Groq (`openai/gpt-oss-120b`)           | Query planning, paper analysis, relevance scoring, structured JSON generation |
 | **Paper Sources** | OpenAlex Works API, arXiv Atom API         | Academic paper retrieval with planner-driven provider selection               |
 | **Planner**       | LLM-based Query Planner                    | Domain detection, query expansion, and dynamic provider routing               |
 | **Styling**       | Tailwind CSS, shadcn/ui                    | Responsive UI and reusable components                                         |
