@@ -1,4 +1,4 @@
-# Research Assistant AI Agent
+#PAPER-SCOUT: Research Assistant AI Agent
 
 <!--
 Live Demo: https://agentic-research-agent-pi.vercel.app/
